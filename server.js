@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 require("dotenv").config();
 const app = require("./app");
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 7000;
 const mongoURI = process.env.MONGO_URI;
 
 const connectDB = async () => {
@@ -10,6 +10,7 @@ const connectDB = async () => {
     await mongoose.connect(mongoURI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
+      ssl: true,
     });
     console.log("Database connection successful");
   } catch (error) {
