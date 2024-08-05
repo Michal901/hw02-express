@@ -1,45 +1,35 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const Joi = require("joi");
-const gravatar = require("gravatar");
+const { v4: uuidv4 } = require("uuid");
 const User = require("../../models/userSchema");
+const { sendVerificationEmail } = require("../../services/emailService");
 
 const router = express.Router();
 
-const signupSchema = Joi.object({
-  email: Joi.string().email().required(),
-  password: Joi.string().required(),
-});
-
-router.post("/signup", async (req, res, next) => {
+router.post("/register", async (req, res, next) => {
   try {
-    const { error } = signupSchema.validate(req.body);
-    if (error) {
-      return res.status(400).json({ message: error.details[0].message });
-    }
-
     const { email, password } = req.body;
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
-      return res.status(409).json({ message: "Email in use" });
+      return res.status(409).json({ message: "Email already in use" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const avatarURL = gravatar.url(email, { s: "250", d: "retro" }, true);
-    const newUser = await User.create({
+    const verificationToken = uuidv4();
+    const user = new User({
       email,
       password: hashedPassword,
-      avatarURL,
+      verificationToken,
     });
 
+    await user.save();
+
+    await sendVerificationEmail(email, verificationToken);
+
     res.status(201).json({
-      user: {
-        email: newUser.email,
-        subscription: newUser.subscription,
-        avatarURL: newUser.avatarURL,
-      },
+      message:
+        "User registered successfully. Please check your email for verification link.",
     });
   } catch (error) {
     next(error);
