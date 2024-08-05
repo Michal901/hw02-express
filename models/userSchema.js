@@ -1,30 +1,30 @@
-const { Schema, model } = require("mongoose");
+const mongoose = require("mongoose");
+const { Schema } = mongoose;
+const { v4: uuidv4 } = require("uuid");
 
 const userSchema = new Schema({
-  password: {
-    type: String,
-    required: [true, "Password is required"],
-  },
   email: {
     type: String,
     required: [true, "Email is required"],
     unique: true,
   },
-  subscription: {
+  password: {
     type: String,
-    enum: ["starter", "pro", "business"],
-    default: "starter",
-  },
-  token: {
-    type: String,
-    default: null,
+    required: [true, "Password is required"],
   },
   avatarURL: {
     type: String,
-    default: "",
+  },
+  verify: {
+    type: Boolean,
+    default: false,
+  },
+  verificationToken: {
+    type: String,
+    required: [true, "Verify token is required"],
+    default: uuidv4,
   },
 });
 
-const User = model("User", userSchema);
-
+const User = mongoose.model("User", userSchema);
 module.exports = User;
